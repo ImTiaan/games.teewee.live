@@ -1,26 +1,57 @@
 @import "tailwindcss";
 
+@theme {
+  --color-bottle-950: #001a00;
+  --color-bottle-900: #002400;
+  --color-bottle-800: #003b00;
+  --color-bottle-700: #004d00;
+  --color-bottle-600: #006600;
+  --color-bottle-500: #008000;
+  
+  --color-glass-surface: rgba(255, 255, 255, 0.05);
+  --color-glass-border: rgba(255, 255, 255, 0.1);
+  --color-glass-highlight: rgba(255, 255, 255, 0.2);
+  
+  --font-heading: var(--font-block-script);
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --background: #001a00;
+  --foreground: #f0fdf4; /* faint green white */
 }
 
 body {
-  background: var(--background);
+  background: radial-gradient(circle at 50% 0%, #003b00 0%, #001a00 80%);
+  background-attachment: fixed;
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), sans-serif;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Liquid Glass Utilities */
+.glass-panel {
+  background-color: var(--color-glass-surface);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--color-glass-border);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+}
+
+.glass-button {
+  background-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.2s ease;
+}
+
+.glass-button:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 0 15px rgba(0, 255, 0, 0.1);
+}
+
+.text-glow {
+  text-shadow: 0 0 20px rgba(74, 222, 128, 0.3);
 }

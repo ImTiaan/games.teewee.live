@@ -1,0 +1,237 @@
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import { ArrowLeft, ArrowRight, Check, X } from 'lucide-react';
+import clsx from 'clsx';
+
+interface GameItem {
+  id: string;
+  prompt_text: string;
+  answer: string;
+  source_name: string;
+  source_url: string;
+  asset_type?: string;
+  metadata?: {
+    pubDate?: string;
+    imageUrl?: string;
+  };
+}
+
+interface GameClientProps {
+  modeId: string;
+  modeTitle: string;
+  items: GameItem[];
+  choices: string[];
+  gameType?: 'daily' | 'archive';
+}
+
+export default function GameClient({ modeId, modeTitle, items, choices, gameType = 'daily' }: GameClientProps) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [score, setScore] = useState(0);
+  const [isFinished, setIsFinished] = useState(false);
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [showQuitConfirm, setShowQuitConfirm] = useState(false);
+
+  const currentItem = items[currentIndex];
+
+  const handleAnswer = (choice: string) => {
+    if (showFeedback) return;
+
+    setSelectedAnswer(choice);
+    const isCorrect = choice.toLowerCase() === currentItem.answer.toLowerCase();
+    
+    if (isCorrect) {
+      setScore(s => s + 1);
+    }
+
+    setShowFeedback(true);
+  };
+
+  const handleNext = () => {
+    setShowFeedback(false);
+    setSelectedAnswer(null);
+    
+    if (currentIndex < items.length - 1) {
+      setCurrentIndex(i => i + 1);
+    } else {
+      setIsFinished(true);
+    }
+  };
+
+  if (isFinished) {
+    const isMarathon = gameType === 'archive' && items.length > 50;
+
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-8">
+        <div className="glass-panel p-12 rounded-3xl max-w-md w-full text-center space-y-8">
+          <h2 className="text-3xl font-bold text-glow">
+            {isMarathon ? "Archive Cleared!" : "Results"}
+          </h2>
+          
+          <div className="space-y-2">
+            <p className="text-green-100/60 uppercase tracking-widest text-sm">Score</p>
+            <p className="text-6xl font-bold text-white">
+              {score} <span className="text-3xl text-green-100/40">/ {items.length}</span>
+            </p>
+          </div>
+
+          {isMarathon && (
+            <p className="text-green-300 font-medium animate-pulse">
+              Incredible! You've answered every available question.
+            </p>
+          )}
+
+          <div className="pt-4">
+             <Link href="/" className="glass-button px-8 py-3 rounded-full text-lg font-medium inline-flex items-center gap-2">
+               <ArrowLeft className="w-5 h-5" /> Back to Home
+             </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentItem) {
+      return <div>Loading...</div>;
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col p-4 md:p-8 max-w-2xl mx-auto">
+      <header className="flex items-center justify-between mb-12">
+        <Link href="/" className="p-2 glass-button rounded-full">
+          <ArrowLeft className="w-6 h-6" />
+        </Link>
+        <h1 className="text-xl font-heading font-bold text-glow">{modeTitle}</h1>
+        <div className="text-sm font-mono text-green-100/60">
+          {currentIndex + 1} / {items.length}
+        </div>
+      </header>
+
+      <main className="flex-1 flex flex-col justify-center">
+        <div className={clsx(
+          "glass-panel p-8 md:p-12 rounded-3xl min-h-[300px] flex flex-col items-center justify-center text-center mb-8 transition-colors duration-300",
+          showFeedback && (currentItem.answer.toLowerCase() === selectedAnswer?.toLowerCase() ? "bg-green-900/30 border-green-500/30" : "bg-red-900/30 border-red-500/30")
+        )}>
+          
+          {!showFeedback ? (
+            <>
+              {currentItem.asset_type === 'image' && currentItem.metadata?.imageUrl ? (
+                <div className="w-full h-64 md:h-80 relative mb-6 rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img 
+                    src={currentItem.metadata.imageUrl} 
+                    alt="Challenge" 
+                    className="w-full h-full object-cover animate-in fade-in duration-500"
+                  />
+                </div>
+              ) : null}
+
+              <h2 className="text-2xl md:text-3xl font-medium leading-tight animate-in fade-in zoom-in duration-300">
+                "{currentItem.prompt_text}"
+              </h2>
+              {currentItem.metadata?.pubDate && (
+                <p className="mt-6 text-sm font-mono text-green-100/50 animate-in fade-in slide-in-from-bottom-2 duration-500 delay-100">
+                  {new Date(currentItem.metadata.pubDate).toLocaleDateString(undefined, { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}
+                </p>
+              )}
+            </>
+          ) : (
+            <div className="animate-in fade-in zoom-in duration-300 flex flex-col items-center">
+              {currentItem.answer.toLowerCase() === selectedAnswer?.toLowerCase() ? (
+                <>
+                  <div className="w-20 h-20 rounded-full bg-green-500/20 flex items-center justify-center mb-6">
+                    <Check className="w-10 h-10 text-green-400" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-green-300 mb-2">Correct!</h3>
+                </>
+              ) : (
+                <>
+                  <div className="w-20 h-20 rounded-full bg-red-500/20 flex items-center justify-center mb-6">
+                    <X className="w-10 h-10 text-red-400" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-red-300 mb-2">Incorrect</h3>
+                  <p className="text-lg text-red-100/80 mb-1">
+                    It was actually <span className="font-bold">{currentItem.answer}</span>
+                  </p>
+                </>
+              )}
+              
+                <div className="mt-6 pt-6 border-t border-white/10 w-full max-w-xs">
+                <p className="text-xs text-green-100/40 uppercase tracking-widest mb-1">Source</p>
+                <p className="text-sm text-green-100/80 font-medium truncate">
+                  {currentItem.source_name}
+                </p>
+                {currentItem.metadata?.pubDate && (
+                  <p className="text-xs text-green-100/50 mt-1">
+                    {new Date(currentItem.metadata.pubDate).toLocaleDateString()}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          {!showFeedback ? (
+            choices.map((choice) => (
+              <button
+                key={choice}
+                onClick={() => handleAnswer(choice)}
+                className="glass-button h-20 rounded-2xl text-xl font-semibold transition-all hover:bg-white/10 active:scale-95"
+              >
+                {choice}
+              </button>
+            ))
+          ) : (
+            <>
+              <button
+                onClick={() => setShowQuitConfirm(true)}
+                className="glass-button h-20 rounded-2xl text-lg font-medium text-red-300/60 hover:text-red-300 hover:bg-red-900/20 transition-all flex items-center justify-center gap-2"
+              >
+                <X className="w-5 h-5" /> Quit
+              </button>
+              <button
+                onClick={handleNext}
+                className="glass-button h-20 rounded-2xl text-xl font-bold bg-white/10 hover:bg-white/20 transition-all flex items-center justify-center gap-2 animate-in fade-in slide-in-from-bottom-4"
+              >
+                {currentIndex < items.length - 1 ? 'Next' : 'Finish'} <ArrowRight className="w-6 h-6" />
+              </button>
+            </>
+          )}
+        </div>
+      </main>
+
+      {showQuitConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="glass-panel p-8 rounded-3xl max-w-sm w-full text-center space-y-6 animate-in zoom-in-95 duration-200 border border-white/10 shadow-2xl">
+            <div className="space-y-2">
+              <h3 className="text-xl font-bold text-white">Quit Game?</h3>
+              <p className="text-sm text-green-100/60">Your progress in this session will be lost.</p>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <button 
+                onClick={() => setShowQuitConfirm(false)}
+                className="glass-button p-4 rounded-xl font-medium hover:bg-white/5 transition-colors"
+              >
+                Cancel
+              </button>
+              <Link 
+                href="/"
+                className="glass-button p-4 rounded-xl font-medium bg-red-500/10 text-red-300 hover:bg-red-500/20 transition-colors flex items-center justify-center"
+              >
+                Quit
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
