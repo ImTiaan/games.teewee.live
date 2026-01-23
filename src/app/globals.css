@@ -15,6 +15,10 @@
   --font-heading: var(--font-block-script);
 }
 
+.font-heading {
+  font-family: var(--font-block-script), serif;
+}
+
 :root {
   --background: #001a00;
   --foreground: #f0fdf4; /* faint green white */

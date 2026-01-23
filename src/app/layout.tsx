@@ -17,6 +17,7 @@ const geistMono = Geist_Mono({
 const blockScript = localFont({
   src: "./fonts/Block-Script.otf",
   variable: "--font-block-script",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
