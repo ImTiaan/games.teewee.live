@@ -54,7 +54,7 @@ export default async function Home() {
                         <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
                         Live Now
                       </div>
-                      <h2 className="text-5xl md:text-6xl font-heading font-normal text-white group-hover:text-green-300 transition-colors">
+                      <h2 className="text-4xl md:text-5xl font-bold text-white group-hover:text-green-300 transition-colors tracking-tight">
                         {mode.title}
                       </h2>
                       <p className="text-lg text-green-100/60 max-w-xl leading-relaxed">
@@ -87,7 +87,7 @@ export default async function Home() {
                   className="glass-panel p-6 rounded-2xl group hover:bg-white/5 transition-all duration-300 flex flex-col justify-between h-full border-white/5 hover:border-green-500/30"
                 >
                   <div className="space-y-4">
-                    <h2 className="text-4xl font-heading font-normal text-green-100/90 group-hover:text-green-300 transition-colors">
+                    <h2 className="text-2xl font-bold text-green-100/90 group-hover:text-green-300 transition-colors tracking-tight">
                       {mode.title}
                     </h2>
                     <p className="text-sm text-green-100/50 leading-relaxed">

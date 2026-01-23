@@ -1,4 +1,6 @@
 import { RSSSource } from './sources/rss';
+import { WIKIDATA_FEEDS } from './wikidata-feeds';
+import { AiRealSource } from './sources/ai-real-source';
 
 export const HEADLINE_FEEDS = [
   // Real News
@@ -16,4 +18,10 @@ export const HEADLINE_FEEDS = [
   new RSSSource('betoota', 'The Betoota Advocate', 'https://www.betootaadvocate.com/feed/', 'Satire'),
   new RSSSource('chaser', 'The Chaser', 'https://chaser.com.au/feed/', 'Satire'),
   new RSSSource('waterford-whispers', 'Waterford Whispers News', 'https://waterfordwhispersnews.com/feed/', 'Satire')
+];
+
+export const ALL_FEEDS = [
+  ...HEADLINE_FEEDS,
+  ...WIKIDATA_FEEDS,
+  new AiRealSource()
 ];

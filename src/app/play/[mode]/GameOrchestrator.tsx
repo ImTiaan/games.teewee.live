@@ -12,9 +12,11 @@ interface GameItem {
   source_name: string;
   source_url: string;
   asset_type?: string;
+  choices?: string[];
   metadata?: {
       pubDate?: string;
       imageUrl?: string;
+      choices?: string[];
   };
 }
 

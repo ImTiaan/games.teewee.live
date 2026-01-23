@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServiceSupabase } from '../../../../../lib/supabase/client';
-import { HEADLINE_FEEDS } from '../../../../../lib/ingestion/feeds';
+import { ALL_FEEDS } from '../../../../../lib/ingestion/feeds';
 import { DailyGenerator } from '../../../../../lib/game/daily-generator';
 
 export const dynamic = 'force-dynamic';
@@ -23,11 +23,11 @@ export async function GET(req: NextRequest) {
 
     log('Starting daily update cron job...');
 
-    // 2. Ingestion (Headlines)
+    // 2. Ingestion
     log('--- Phase 1: Ingestion ---');
     let ingestedCount = 0;
     
-    for (const source of HEADLINE_FEEDS) {
+    for (const source of ALL_FEEDS) {
       try {
         log(`Fetching ${source.name}...`);
         const items = await source.fetch();

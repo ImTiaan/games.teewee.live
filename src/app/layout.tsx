@@ -21,7 +21,7 @@ const blockScript = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Daily Judgement",
+  title: "The Dailies",
   description: "A daily game of bias and perception.",
 };
 

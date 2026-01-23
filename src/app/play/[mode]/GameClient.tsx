@@ -12,9 +12,11 @@ interface GameItem {
   source_name: string;
   source_url: string;
   asset_type?: string;
+  choices?: string[]; // Added explicit choices
   metadata?: {
     pubDate?: string;
     imageUrl?: string;
+    choices?: string[];
   };
 }
 
@@ -26,7 +28,7 @@ interface GameClientProps {
   gameType?: 'daily' | 'archive';
 }
 
-export default function GameClient({ modeId, modeTitle, items, choices, gameType = 'daily' }: GameClientProps) {
+export default function GameClient({ modeId, modeTitle, items, choices: defaultChoices, gameType = 'daily' }: GameClientProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
@@ -35,6 +37,8 @@ export default function GameClient({ modeId, modeTitle, items, choices, gameType
   const [showQuitConfirm, setShowQuitConfirm] = useState(false);
 
   const currentItem = items[currentIndex];
+  // Prioritize item-specific choices (from choices column or metadata), fallback to mode default
+  const currentChoices = currentItem?.choices || currentItem?.metadata?.choices || defaultChoices;
 
   const handleAnswer = (choice: string) => {
     if (showFeedback) return;
@@ -179,7 +183,7 @@ export default function GameClient({ modeId, modeTitle, items, choices, gameType
 
         <div className="grid grid-cols-2 gap-4">
           {!showFeedback ? (
-            choices.map((choice) => (
+            currentChoices.map((choice) => (
               <button
                 key={choice}
                 onClick={() => handleAnswer(choice)}

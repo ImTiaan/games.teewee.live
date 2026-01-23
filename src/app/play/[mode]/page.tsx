@@ -33,7 +33,8 @@ export default async function PlayPage({ params }: { params: Promise<{ mode: str
         source_name,
         source_url,
         asset_type,
-        metadata
+        metadata,
+        choices_json
       )
     `)
     .eq('date', today)
@@ -49,7 +50,8 @@ export default async function PlayPage({ params }: { params: Promise<{ mode: str
     source_name: dsi.items.source_name,
     source_url: dsi.items.source_url,
     asset_type: dsi.items.asset_type,
-    metadata: dsi.items.metadata
+    metadata: dsi.items.metadata,
+    choices: dsi.items.choices_json // Map JSON column
   }));
   
   const rules = mode.rules_json as { choices?: string[] };

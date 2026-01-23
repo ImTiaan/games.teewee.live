@@ -44,7 +44,8 @@ export async function fetchArchiveItems(modeId: string, count: number) {
         source_name,
         source_url,
         asset_type,
-        metadata
+        metadata,
+        choices_json
       `)
       .in('id', selectedIds);
 
@@ -54,7 +55,11 @@ export async function fetchArchiveItems(modeId: string, count: number) {
     }
 
     // 4. Shuffle the result items one more time (since .in() might return in ID order)
-    const finalItems = items?.sort(() => Math.random() - 0.5) || [];
+    // And map choices_json to choices
+    const finalItems = items?.map(item => ({
+      ...item,
+      choices: item.choices_json // Map JSON column to choices prop
+    })).sort(() => Math.random() - 0.5) || [];
 
     return finalItems;
 
