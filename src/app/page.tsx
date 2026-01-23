@@ -23,7 +23,7 @@ export default async function Home() {
       <div className="max-w-4xl w-full space-y-16 relative z-10">
         <div className="text-center space-y-4">
           <h1 className="text-7xl md:text-9xl font-heading font-normal tracking-tighter text-glow text-green-100/90 transform -rotate-2">
-            Daily Judgement
+            The Dailies
           </h1>
           <p className="text-xl text-green-100/60 font-light max-w-lg mx-auto leading-relaxed">
             Test your biases against reality. <br/>
