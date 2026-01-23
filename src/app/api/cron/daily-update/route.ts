@@ -46,12 +46,12 @@ export async function GET(req: NextRequest) {
           }
         }
         ingestedCount += sourceCount;
-        log(`Ingested ~${sourceCount} items from ${source.name}`);
+        log(`Processed ~${sourceCount} items from ${source.name} (new & existing)`);
       } catch (err) {
         log(`Error processing ${source.name}: ${err}`);
       }
     }
-    log(`Total items ingested: ${ingestedCount}`);
+    log(`Total items processed: ${ingestedCount}`);
 
     // 3. Reset Daily Sets
     const today = new Date().toISOString().split('T')[0];

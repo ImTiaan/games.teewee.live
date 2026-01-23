@@ -11,7 +11,7 @@ export const HEADLINE_FEEDS = [
   new RSSSource('daily-mash', 'The Daily Mash', 'https://www.thedailymash.co.uk/feed', 'Satire'),
   new RSSSource('babylon-bee', 'The Babylon Bee', 'https://babylonbee.com/feed', 'Satire'),
   new RSSSource('new-yorker-borowitz', 'The Borowitz Report', 'https://www.newyorker.com/feed/humor/borowitz-report', 'Satire'),
-  new RSSSource('reductress', 'Reductress', 'https://reductress.com/rss', 'Satire'),
+  new RSSSource('reductress', 'Reductress', 'https://reductress.com/feed/', 'Satire'),
   new RSSSource('duffel-blog', 'Duffel Blog', 'https://www.duffelblog.com/feed', 'Satire'),
   new RSSSource('betoota', 'The Betoota Advocate', 'https://www.betootaadvocate.com/feed/', 'Satire'),
   new RSSSource('chaser', 'The Chaser', 'https://chaser.com.au/feed/', 'Satire'),
