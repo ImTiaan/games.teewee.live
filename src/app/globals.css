@@ -20,12 +20,12 @@
 }
 
 :root {
-  --background: #001a00;
+  --background: #050a08;
   --foreground: #f0fdf4; /* faint green white */
 }
 
 body {
-  background: radial-gradient(circle at 50% -20%, #0a2e0a 0%, #000000 100%);
+  background: radial-gradient(circle at 50% -20%, #0f2e26 0%, #050a08 100%);
   background-attachment: fixed;
   color: var(--foreground);
   font-family: var(--font-geist-sans), sans-serif;

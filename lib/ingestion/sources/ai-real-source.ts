@@ -96,7 +96,7 @@ export class AiRealSource implements IngestionSource {
           
           realItems.push({
             mode_id: this.mode_id,
-            prompt_text: 'Is this image Real or AI generated?',
+            prompt_text: 'Is this image Real or AI?',
             answer: 'Real',
             choices_json: ['Real', 'AI'],
             asset_type: 'image',
@@ -145,7 +145,7 @@ export class AiRealSource implements IngestionSource {
 
       aiItems.push({
         mode_id: this.mode_id,
-        prompt_text: 'Is this image Real or AI generated?',
+        prompt_text: 'Is this image Real or AI?',
         answer: 'AI',
         choices_json: ['Real', 'AI'],
         asset_type: 'image',
