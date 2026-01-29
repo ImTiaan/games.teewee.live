@@ -173,7 +173,7 @@ export default function GameClient({ modeId, modeTitle, items, choices: defaultC
                   {currentItem.source_name}
                 </p>
 
-                {currentItem.source_url && (
+                {modeId === 'headline-satire' && currentItem.source_url && (
                   <a 
                     href={currentItem.source_url} 
                     target="_blank" 
