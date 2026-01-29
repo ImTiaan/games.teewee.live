@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, ArrowRight, Check, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, X, ExternalLink } from 'lucide-react';
 import clsx from 'clsx';
 
 interface GameItem {
@@ -168,22 +168,24 @@ export default function GameClient({ modeId, modeTitle, items, choices: defaultC
               
                 <div className="mt-6 pt-6 border-t border-white/10 w-full max-w-xs">
                 <p className="text-xs text-green-100/40 uppercase tracking-widest mb-1">Source</p>
-                {currentItem.source_url ? (
+                
+                <p className="text-sm text-green-100 font-medium truncate">
+                  {currentItem.source_name}
+                </p>
+
+                {currentItem.source_url && (
                   <a 
                     href={currentItem.source_url} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="text-sm text-green-300 hover:text-green-200 font-medium truncate block underline decoration-green-500/30 underline-offset-4 hover:decoration-green-300 transition-all"
+                    className="mt-3 glass-button py-2 px-4 rounded-xl text-xs font-medium text-green-300 hover:text-green-200 flex items-center justify-center gap-2 w-full transition-all group"
                   >
-                    {currentItem.source_name} ↗
+                    Read Article <ExternalLink className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                   </a>
-                ) : (
-                  <p className="text-sm text-green-100/80 font-medium truncate">
-                    {currentItem.source_name}
-                  </p>
                 )}
+                
                 {currentItem.metadata?.pubDate && (
-                  <p className="text-xs text-green-100/50 mt-1">
+                  <p className="text-xs text-green-100/50 mt-3">
                     {new Date(currentItem.metadata.pubDate).toLocaleDateString()}
                   </p>
                 )}
