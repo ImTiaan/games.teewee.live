@@ -2,6 +2,7 @@ import { RSSSource } from './sources/rss';
 import { WIKIDATA_FEEDS } from './wikidata-feeds';
 import { AiRealSource } from './sources/ai-real-source';
 import { UrbanDictionarySource } from './sources/urban-dictionary';
+import { MusicHistorySource } from './sources/music-history';
 
 export const HEADLINE_FEEDS = [
   // Real News
@@ -25,5 +26,6 @@ export const ALL_FEEDS = [
   ...HEADLINE_FEEDS,
   ...WIKIDATA_FEEDS,
   new AiRealSource(),
-  new UrbanDictionarySource()
+  new UrbanDictionarySource(),
+  new MusicHistorySource()
 ];

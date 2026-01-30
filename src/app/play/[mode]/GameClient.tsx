@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, ArrowRight, Check, X, ExternalLink } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, X, ExternalLink, Play, Pause, Volume2 } from 'lucide-react';
 import clsx from 'clsx';
 
 interface GameItem {
@@ -16,6 +16,7 @@ interface GameItem {
   metadata?: {
     pubDate?: string;
     imageUrl?: string;
+    audioUrl?: string; // Added audioUrl
     choices?: string[];
     example?: string;
   };
@@ -37,12 +38,64 @@ export default function GameClient({ modeId, modeTitle, items, choices: defaultC
   const [showFeedback, setShowFeedback] = useState(false);
   const [showQuitConfirm, setShowQuitConfirm] = useState(false);
 
+  // Music History Specific State
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [audioDuration, setAudioDuration] = useState(1);
+  const [dropdownValue, setDropdownValue] = useState("");
+
   const currentItem = items[currentIndex];
   // Prioritize item-specific choices (from choices column or metadata), fallback to mode default
   const currentChoices = currentItem?.choices || currentItem?.metadata?.choices || defaultChoices;
 
+  // Reset music state on item change
+  useEffect(() => {
+    setAudioDuration(1);
+    setDropdownValue("");
+    setIsPlaying(false);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+  }, [currentIndex]);
+
+  const handlePlayAudio = () => {
+    if (!audioRef.current) return;
+    
+    setIsPlaying(true);
+    audioRef.current.currentTime = 0;
+    audioRef.current.play();
+
+    // Stop after duration
+    setTimeout(() => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+        setIsPlaying(false);
+      }
+    }, audioDuration * 1000);
+  };
+
   const handleAnswer = (choice: string) => {
     if (showFeedback) return;
+
+    // Special logic for Music History
+    if (modeId === 'music-history') {
+        const isCorrect = choice.toLowerCase() === currentItem.answer.toLowerCase();
+        if (!isCorrect && audioDuration < 10) {
+            // Incorrect attempt, extend duration
+            setAudioDuration(prev => prev + 1);
+            setDropdownValue(""); // Reset selection
+            // Optional: Show toast or shake effect? 
+            // For now, we rely on the UI showing "Clip extended"
+            return;
+        }
+        // If correct OR duration reached max, proceed to feedback
+        setSelectedAnswer(choice);
+        if (isCorrect) setScore(s => s + 1);
+        setShowFeedback(true);
+        return;
+    }
 
     setSelectedAnswer(choice);
     const isCorrect = choice.toLowerCase() === currentItem.answer.toLowerCase();
@@ -133,6 +186,36 @@ export default function GameClient({ modeId, modeTitle, items, choices: defaultC
                 </div>
               ) : null}
 
+              {modeId === 'music-history' && currentItem.metadata?.audioUrl && (
+                 <div className="mb-8 flex flex-col items-center animate-in fade-in zoom-in duration-300">
+                    <audio ref={audioRef} src={currentItem.metadata.audioUrl} />
+                    
+                    <button 
+                        onClick={handlePlayAudio}
+                        disabled={isPlaying}
+                        className={clsx(
+                            "w-24 h-24 rounded-full flex items-center justify-center transition-all duration-300 shadow-xl border-4",
+                            isPlaying 
+                                ? "bg-green-500 border-green-400 scale-110 shadow-green-500/50" 
+                                : "bg-white/10 border-white/20 hover:bg-white/20 hover:scale-105"
+                        )}
+                    >
+                        {isPlaying ? <Volume2 className="w-10 h-10 text-white animate-pulse" /> : <Play className="w-10 h-10 text-white ml-1" />}
+                    </button>
+                    
+                    <div className="mt-4 flex flex-col items-center gap-2">
+                        <p className="text-sm font-mono text-green-100/60 uppercase tracking-widest">
+                            Clip Length: <span className="text-white font-bold">{audioDuration}s</span>
+                        </p>
+                        {audioDuration > 1 && (
+                            <p className="text-xs text-red-300 animate-pulse">
+                                +1s added for incorrect guess
+                            </p>
+                        )}
+                    </div>
+                 </div>
+              )}
+
               <h2 className="text-2xl md:text-3xl font-medium leading-tight animate-in fade-in zoom-in duration-300">
                 "{currentItem.prompt_text}"
               </h2>
@@ -206,15 +289,40 @@ export default function GameClient({ modeId, modeTitle, items, choices: defaultC
 
         <div className="grid grid-cols-2 gap-4">
           {!showFeedback ? (
-            currentChoices.map((choice) => (
-              <button
-                key={choice}
-                onClick={() => handleAnswer(choice)}
-                className="glass-button h-20 rounded-2xl text-xl font-semibold transition-all hover:bg-white/10 active:scale-95"
-              >
-                {choice}
-              </button>
-            ))
+            modeId === 'music-history' ? (
+                <div className="col-span-2 flex flex-col gap-4">
+                    <select
+                        value={dropdownValue}
+                        onChange={(e) => setDropdownValue(e.target.value)}
+                        className="w-full p-4 rounded-xl bg-white/10 border border-white/20 text-white text-lg focus:outline-none focus:border-green-500 transition-colors"
+                    >
+                        <option value="" disabled className="bg-gray-900 text-gray-400">Select the song...</option>
+                        {currentChoices.map((choice) => (
+                            <option key={choice} value={choice} className="bg-gray-900 text-white">
+                                {choice}
+                            </option>
+                        ))}
+                    </select>
+                    
+                    <button
+                        onClick={() => dropdownValue && handleAnswer(dropdownValue)}
+                        disabled={!dropdownValue}
+                        className="glass-button h-16 rounded-xl text-xl font-bold bg-green-500/20 hover:bg-green-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                    >
+                        Submit Guess <ArrowRight className="w-5 h-5" />
+                    </button>
+                </div>
+            ) : (
+                currentChoices.map((choice) => (
+                <button
+                    key={choice}
+                    onClick={() => handleAnswer(choice)}
+                    className="glass-button h-20 rounded-2xl text-xl font-semibold transition-all hover:bg-white/10 active:scale-95"
+                >
+                    {choice}
+                </button>
+                ))
+            )
           ) : (
             <>
               <button

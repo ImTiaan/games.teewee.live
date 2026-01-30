@@ -16,6 +16,7 @@ interface GameItem {
   metadata?: {
       pubDate?: string;
       imageUrl?: string;
+      audioUrl?: string;
       choices?: string[];
   };
 }

@@ -46,6 +46,14 @@ async function run() {
       round_type: 'multi',
       active: true,
       rules_json: { choices: [] }
+    },
+    {
+      id: 'music-history',
+      title: 'Music History Challenge',
+      description: 'Guess the song starting from just a 1-second clip!',
+      round_type: 'multi',
+      active: true,
+      rules_json: { choices: [] }
     }
   ];
 
