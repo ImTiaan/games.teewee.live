@@ -38,6 +38,14 @@ async function run() {
       round_type: 'binary',
       active: true,
       rules_json: { choices: ['Human', 'AI'] }
+    },
+    {
+      id: 'urban-dictionary',
+      title: 'Urban Dictionary Challenge',
+      description: 'Can you speak the slang? Match the definition to the word.',
+      round_type: 'multi',
+      active: true,
+      rules_json: { choices: [] }
     }
   ];
 
