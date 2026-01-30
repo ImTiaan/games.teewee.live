@@ -17,6 +17,7 @@ interface GameItem {
     pubDate?: string;
     imageUrl?: string;
     choices?: string[];
+    example?: string;
   };
 }
 
@@ -164,6 +165,15 @@ export default function GameClient({ modeId, modeTitle, items, choices: defaultC
                     It was actually <span className="font-bold">{currentItem.answer}</span>
                   </p>
                 </>
+              )}
+
+              {modeId === 'urban-dictionary' && currentItem.metadata?.example && (
+                <div className="mt-4 p-4 rounded-xl bg-white/5 border border-white/10 max-w-sm w-full">
+                  <p className="text-xs text-green-100/40 uppercase tracking-widest mb-2">Usage</p>
+                  <p className="text-sm text-green-100/80 italic leading-relaxed">
+                    "{currentItem.metadata.example}"
+                  </p>
+                </div>
               )}
               
                 <div className="mt-6 pt-6 border-t border-white/10 w-full max-w-xs">
