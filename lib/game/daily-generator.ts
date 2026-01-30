@@ -11,39 +11,37 @@ export class DailyGenerator {
   async generate(dateStr: string) {
     console.log(`Starting generation for ${dateStr}...`);
     
-    // 1. Check if daily set already exists
-    const { data: existing } = await this.supabase
+    // 1. Ensure Daily Set record exists
+    let { data: existing } = await this.supabase
       .from('daily_sets')
       .select('date')
       .eq('date', dateStr)
       .single();
 
-    if (existing) {
-      console.log(`Daily set for ${dateStr} already exists.`);
-      return;
+    if (!existing) {
+      // Generate seed from date
+      const rng = seedrandom(dateStr);
+      const seed = Math.abs(rng.int32());
+
+      console.log(`Creating daily set for ${dateStr} with seed ${seed}`);
+
+      const { error: createError } = await this.supabase
+        .from('daily_sets')
+        .insert({
+          date: dateStr,
+          seed: seed,
+          snapshot_blob_url: null
+        });
+
+      if (createError) {
+        console.error('Error creating daily set:', createError);
+        throw createError;
+      }
+    } else {
+      console.log(`Daily set for ${dateStr} already exists. Checking for missing modes...`);
     }
 
-    // 2. Generate seed from date
-    const rng = seedrandom(dateStr);
-    const seed = Math.abs(rng.int32());
-
-    console.log(`Generating daily set for ${dateStr} with seed ${seed}`);
-
-    // 3. Create Daily Set record
-    const { error: createError } = await this.supabase
-      .from('daily_sets')
-      .insert({
-        date: dateStr,
-        seed: seed,
-        snapshot_blob_url: null
-      });
-
-    if (createError) {
-      console.error('Error creating daily set:', createError);
-      throw createError;
-    }
-
-    // 4. Get active modes
+    // 2. Get active modes
     const { data: modes } = await this.supabase
       .from('modes')
       .select('id')
@@ -55,7 +53,21 @@ export class DailyGenerator {
     }
 
     for (const mode of modes) {
-      // 5. Fetch used items from last 7 days
+      // 3. Check if items already exist for this mode
+      const { count } = await this.supabase
+        .from('daily_set_items')
+        .select('*', { count: 'exact', head: true })
+        .eq('date', dateStr)
+        .eq('mode_id', mode.id);
+
+      if (count && count > 0) {
+        console.log(`Items for mode ${mode.id} already exist. Skipping.`);
+        continue;
+      }
+
+      console.log(`Generating items for mode ${mode.id}...`);
+
+      // 4. Fetch used items from last 7 days
       const lastWeek = new Date(new Date(dateStr).getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
       const { data: recentItems } = await this.supabase
         .from('daily_set_items')
@@ -66,8 +78,7 @@ export class DailyGenerator {
       
       const usedItemIds = new Set(recentItems?.map(i => i.item_id) || []);
 
-      // 6. Fetch candidate items for this mode
-      // Added metadata and created_at for freshness sorting
+      // 5. Fetch candidate items for this mode
       const { data: items } = await this.supabase
         .from('items')
         .select('id, answer, metadata, created_at')
@@ -86,70 +97,81 @@ export class DailyGenerator {
         candidateItems = items;
       }
 
-      // 7. Balanced Selection Logic (Prioritize Freshness)
+      // 6. Selection Logic (Prioritize Freshness & Balance)
       const modeRng = seedrandom(`${dateStr}-${mode.id}`);
-      const TARGET_PER_TYPE = 50;
+      
+      // Sort candidates by freshness (metadata.pubDate or created_at)
+      // We add a small random factor to same-dated items to vary selection slightly if many have same date
+      candidateItems.sort((a, b) => {
+        const dateA = new Date(a.metadata?.pubDate || a.created_at).getTime();
+        const dateB = new Date(b.metadata?.pubDate || b.created_at).getTime();
+        if (dateA !== dateB) return dateB - dateA; // Descending (newest first)
+        return 0.5 - modeRng();
+      });
 
-      // Group items by answer
+      // Take top N newest items to form the pool, then shuffle or balance them
+      // Actually, for daily sets we usually want a specific set size (e.g. 10)
+      // If we just take top 10 newest, it might be unbalanced (e.g. all "Real").
+      // So we should take a larger pool of "fresh" items and then balance-select from them.
+      
+      const FRESH_POOL_SIZE = 50; // Consider top 50 newest items
+      const pool = candidateItems.slice(0, FRESH_POOL_SIZE);
+
+      const TARGET_COUNT = 10;
+      let selectedItems: typeof items = [];
+
+      // Group by answer for balancing
       const groups: Record<string, typeof items> = {};
-      candidateItems.forEach(item => {
+      pool.forEach(item => {
         const key = item.answer || 'unknown';
         if (!groups[key]) groups[key] = [];
         groups[key].push(item);
       });
-
-      // Sort each group by date descending (Newest first)
-      // Use pubDate from metadata if available, else created_at
-      const getItemDate = (item: any) => {
-        const pubDate = item.metadata?.pubDate;
-        if (pubDate) return new Date(pubDate).getTime();
-        return new Date(item.created_at).getTime();
-      };
-
-      Object.keys(groups).forEach(key => {
-        groups[key].sort((a, b) => getItemDate(b) - getItemDate(a));
-      });
-
-      const keys = Object.keys(groups);
-      const selected: typeof items = [];
       
-      if (keys.length === 2) {
-        const groupA = groups[keys[0]];
-        const groupB = groups[keys[1]];
-
-        // Take top N newest items from each group
-        // If we have enough "fresh" items, this ensures we play the news
-        selected.push(...groupA.slice(0, TARGET_PER_TYPE));
-        selected.push(...groupB.slice(0, TARGET_PER_TYPE));
-
+      const keys = Object.keys(groups);
+      
+      if (keys.length > 0) {
+        // Round-robin selection from groups to ensure balance
+        let attempts = 0;
+        while (selectedItems.length < TARGET_COUNT && attempts < TARGET_COUNT * 2) {
+            for (const key of keys) {
+                if (selectedItems.length >= TARGET_COUNT) break;
+                
+                // Pick a random item from this group
+                const groupItems = groups[key];
+                if (groupItems.length > 0) {
+                    const idx = Math.floor(modeRng() * groupItems.length);
+                    selectedItems.push(groupItems[idx]);
+                    groupItems.splice(idx, 1); // Remove selected
+                }
+            }
+            attempts++;
+        }
       } else {
-        // Fallback: sort all by date and take top 100
-        const sortedAll = [...candidateItems].sort((a, b) => getItemDate(b) - getItemDate(a));
-        selected.push(...sortedAll.slice(0, TARGET_PER_TYPE * 2));
+          // Fallback if no grouping (shouldn't happen)
+          selectedItems = pool.slice(0, TARGET_COUNT);
       }
+      
+      // Shuffle the final selection so the order isn't predictable (e.g. Real, Fake, Real, Fake)
+      selectedItems.sort(() => 0.5 - modeRng());
 
-      // Final shuffle of the combined selection so they are mixed in the game
-      const finalSelection = selected.sort(() => 0.5 - modeRng());
-
-      // 8. Insert into daily_set_items
-      const setItems = finalSelection.map((item, index) => ({
-        date: dateStr,
-        mode_id: mode.id,
-        item_id: item.id,
-        position: index + 1
-      }));
-
-      const { error: itemsError } = await this.supabase
+      // 7. Insert daily set items
+      const { error: insertError } = await this.supabase
         .from('daily_set_items')
-        .insert(setItems);
+        .insert(
+          selectedItems.map((item, i) => ({
+            date: dateStr,
+            mode_id: mode.id,
+            item_id: item.id,
+            position: i
+          }))
+        );
 
-      if (itemsError) {
-        console.error(`Error inserting items for mode ${mode.id}:`, itemsError);
+      if (insertError) {
+        console.error(`Error inserting items for mode ${mode.id}:`, insertError);
       } else {
-        console.log(`Generated ${selected.length} items for mode ${mode.id}`);
+        console.log(`Generated ${selectedItems.length} items for mode ${mode.id}`);
       }
     }
-    
-    console.log(`Daily set generation for ${dateStr} complete.`);
   }
 }
