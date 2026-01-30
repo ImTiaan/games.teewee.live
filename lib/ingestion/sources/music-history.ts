@@ -134,7 +134,7 @@ export class MusicHistorySource implements IngestionSource {
 
         items.push({
           mode_id: this.id,
-          prompt_text: `Guess the song from the clip. (Starts with 1s)`,
+          prompt_text: `Guess the song from the clip`, // Removed "(Starts with 1s)"
           answer: `${target.trackName} - ${target.artistName}`,
           choices_json: choices,
           asset_type: 'audio',

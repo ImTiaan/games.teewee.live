@@ -76,6 +76,12 @@ export default function GameClient({ modeId, modeTitle, items, choices: defaultC
     }, audioDuration * 1000);
   };
 
+  const handleExtendClip = () => {
+    if (audioDuration < 30) {
+        setAudioDuration(prev => Math.min(prev + 1, 30));
+    }
+  };
+
   const handleAnswer = (choice: string) => {
     if (showFeedback) return;
 
@@ -207,17 +213,23 @@ export default function GameClient({ modeId, modeTitle, items, choices: defaultC
                         <p className="text-sm font-mono text-green-100/60 uppercase tracking-widest">
                             Clip Length: <span className="text-white font-bold">{audioDuration}s</span>
                         </p>
-                        {audioDuration > 1 && (
-                            <p className="text-xs text-red-300 animate-pulse">
-                                +1s added for incorrect guess
-                            </p>
-                        )}
+                        
+                        <button 
+                            onClick={handleExtendClip}
+                            disabled={audioDuration >= 30 || isPlaying}
+                            className="text-xs glass-button px-3 py-1 rounded-full text-green-300 hover:bg-white/10 transition-colors disabled:opacity-50"
+                        >
+                            +1s Hint
+                        </button>
                     </div>
                  </div>
               )}
 
               <h2 className="text-2xl md:text-3xl font-medium leading-tight animate-in fade-in zoom-in duration-300">
-                "{currentItem.prompt_text}"
+                {modeId === 'music-history' 
+                    ? currentItem.prompt_text.replace(/\(Starts with 1s\)/i, '').replace(/"/g, '')
+                    : `"${currentItem.prompt_text}"`
+                }
               </h2>
               {currentItem.metadata?.pubDate && (
                 <p className="mt-6 text-sm font-mono text-green-100/50 animate-in fade-in slide-in-from-bottom-2 duration-500 delay-100">
