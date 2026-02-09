@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, ArrowRight, Check, X, ExternalLink, Play, Pause, Volume2 } from 'lucide-react';
 import clsx from 'clsx';
+import { submitPlay } from '../../actions/game-actions';
 
 interface GameItem {
   id: string;
@@ -82,7 +83,7 @@ export default function GameClient({ modeId, modeTitle, items, choices: defaultC
     }
   };
 
-  const handleAnswer = (choice: string) => {
+  const handleAnswer = async (choice: string) => {
     if (showFeedback) return;
 
     // Special logic for Music History
@@ -99,6 +100,10 @@ export default function GameClient({ modeId, modeTitle, items, choices: defaultC
         // If correct OR duration reached max, proceed to feedback
         setSelectedAnswer(choice);
         if (isCorrect) setScore(s => s + 1);
+        
+        // Submit Play
+        await submitPlay(modeId, currentItem.id, choice, isCorrect, 0); // TODO: Add real timing
+        
         setShowFeedback(true);
         return;
     }
@@ -109,6 +114,9 @@ export default function GameClient({ modeId, modeTitle, items, choices: defaultC
     if (isCorrect) {
       setScore(s => s + 1);
     }
+
+    // Submit Play
+    await submitPlay(modeId, currentItem.id, choice, isCorrect, 0); // TODO: Add real timing
 
     setShowFeedback(true);
   };

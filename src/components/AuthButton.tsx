@@ -29,10 +29,13 @@ export default function AuthButton() {
   }, []);
 
   const signInWithTwitch = async () => {
+    // Determine the base URL for redirection
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+    
     await supabase.auth.signInWithOAuth({
       provider: 'twitch',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${baseUrl}/auth/callback`,
       },
     });
   };

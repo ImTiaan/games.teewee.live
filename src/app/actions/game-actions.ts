@@ -68,3 +68,36 @@ export async function fetchArchiveItems(modeId: string, count: number) {
     return [];
   }
 }
+
+export async function submitPlay(
+  modeId: string, 
+  itemId: string, 
+  answerGiven: string, 
+  isCorrect: boolean, 
+  timeMs: number
+) {
+  const supabase = getServiceSupabase();
+  
+  // Get current user session if exists (using auth.getUser() is safer in server actions)
+  const { data: { user } } = await supabase.auth.getUser();
+
+  try {
+    const { error } = await supabase.from('plays').insert({
+      mode_id: modeId,
+      item_id: itemId,
+      user_id: user?.id || null, // Will be null if not logged in
+      answer_given: answerGiven,
+      is_correct: isCorrect,
+      time_ms: timeMs,
+      // session_id can be added later if we track specific game sessions
+    });
+
+    if (error) {
+      console.error('Error submitting play:', error);
+      // We don't throw here to avoid breaking the game flow for the user
+      // but we log it for debugging
+    }
+  } catch (e) {
+    console.error('Exception submitting play:', e);
+  }
+}
