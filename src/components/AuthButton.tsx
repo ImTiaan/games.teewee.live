@@ -1,8 +1,8 @@
-
 'use client';
 
 import { createBrowserClient } from '@supabase/ssr';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 // Initialize client-side supabase
 const supabase = createBrowserClient(
@@ -10,13 +10,31 @@ const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-interface AuthButtonProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  user: any; // Using any to avoid importing User type mess for now
-}
-
-export default function AuthButton({ user }: AuthButtonProps) {
+export default function AuthButton() {
   const router = useRouter();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+      setLoading(false);
+    };
+
+    getUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+      router.refresh();
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [router]);
 
   const signInWithTwitch = async () => {
     // Determine the base URL for redirection
@@ -32,8 +50,12 @@ export default function AuthButton({ user }: AuthButtonProps) {
 
   const signOut = async () => {
     await supabase.auth.signOut();
-    router.refresh(); // Refresh server components to update Header
+    router.refresh();
   };
+
+  if (loading) {
+    return <div className="h-8 w-24 bg-white/5 rounded animate-pulse" />;
+  }
 
   if (user) {
     return (
@@ -47,6 +69,7 @@ export default function AuthButton({ user }: AuthButtonProps) {
            </span>
         </div>
         {user.user_metadata?.avatar_url && (
+            // eslint-disable-next-line @next/next/no-img-element
             <img 
               src={user.user_metadata.avatar_url} 
               alt="Avatar" 

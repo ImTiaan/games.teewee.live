@@ -34,19 +34,17 @@ export async function GET(request: Request) {
     
     const { data: { session }, error } = await supabase.auth.exchangeCodeForSession(code);
     
-    if (!error && session) {
+    if (!error) {
       const forwardedHost = request.headers.get('x-forwarded-host');
       const isLocalEnv = process.env.NODE_ENV === 'development';
       
-      // Force session refresh in middleware by visiting a protected route or just root
-      // The middleware will see the new cookies and refresh the session
-      
-      let redirectUrl = `${origin}${next}`;
-      if (!isLocalEnv && forwardedHost) {
-        redirectUrl = `https://${forwardedHost}${next}`;
+      if (isLocalEnv) {
+        return NextResponse.redirect(`${origin}${next}`);
+      } else if (forwardedHost) {
+        return NextResponse.redirect(`https://${forwardedHost}${next}`);
+      } else {
+        return NextResponse.redirect(`${origin}${next}`);
       }
-
-      return NextResponse.redirect(redirectUrl);
     } else {
         console.error('Exchange Code Error:', error);
     }
