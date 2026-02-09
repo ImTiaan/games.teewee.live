@@ -1,14 +1,18 @@
 'use client';
 
 import { createBrowserClient } from '@supabase/ssr';
+import { User } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-export default function AuthButton() {
+interface AuthButtonProps {
+  user: User | null;
+}
+
+export default function AuthButton({ user: initialUser }: AuthButtonProps) {
   const router = useRouter();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(initialUser);
+  const [loading, setLoading] = useState(false);
 
   // Initialize client once per component mount
   const [supabase] = useState(() => createBrowserClient(
@@ -17,59 +21,16 @@ export default function AuthButton() {
   ));
 
   useEffect(() => {
-    console.log('[AuthButton] Mounted');
+    console.log('[AuthButton] Mounted with initial user:', initialUser?.id);
     let mounted = true;
 
-    const checkUser = async () => {
-      try {
-        console.log('[AuthButton] Checking local session...');
-        // 1. Check local session (fastest)
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-             console.error('[AuthButton] Session check error:', sessionError);
-        }
-
-        if (mounted) {
-          if (session?.user) {
-            console.log('[AuthButton] Local session found:', session.user.id);
-            setUser(session.user);
-            setLoading(false);
-            return;
-          } else {
-             console.log('[AuthButton] No local session found.');
-          }
-        }
-
-        // 2. Fallback: Check with server (more reliable if cookie exists but local storage empty)
-        console.log('[AuthButton] Checking server-side user...');
-        const { data: { user: secureUser }, error } = await supabase.auth.getUser();
-        
-        if (mounted) {
-          if (secureUser) {
-            console.log('[AuthButton] User found via server check:', secureUser.id);
-            setUser(secureUser);
-          } else {
-            console.log('[AuthButton] No user found via server check:', error?.message);
-            setUser(null);
-          }
-          setLoading(false);
-        }
-      } catch (e) {
-        console.error("[AuthButton] Auth check unexpected error:", e);
-        if (mounted) setLoading(false);
-      }
-    };
-
-    checkUser();
-
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('[AuthButton] Auth state change:', event, session?.user?.id);
       if (mounted) {
         setUser(session?.user ?? null);
-        setLoading(false);
-        router.refresh();
+        if (event === 'SIGNED_OUT') {
+           router.refresh();
+        }
       }
     });
 
@@ -78,7 +39,7 @@ export default function AuthButton() {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [supabase, router]);
+  }, [supabase, router, initialUser]);
 
   const signInWithTwitch = async () => {
     console.log('[AuthButton] Initiating Twitch sign-in...');
