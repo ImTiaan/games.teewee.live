@@ -2,7 +2,7 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- 1. Modes Table
-CREATE TABLE modes (
+CREATE TABLE IF NOT EXISTS modes (
   id TEXT PRIMARY KEY,
   title TEXT NOT NULL,
   description TEXT,
@@ -12,7 +12,7 @@ CREATE TABLE modes (
 );
 
 -- 2. Items Table
-CREATE TABLE items (
+CREATE TABLE IF NOT EXISTS items (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   mode_id TEXT REFERENCES modes(id),
   prompt_text TEXT,
@@ -32,7 +32,7 @@ CREATE TABLE items (
 );
 
 -- 3. Daily Sets Table
-CREATE TABLE daily_sets (
+CREATE TABLE IF NOT EXISTS daily_sets (
   date DATE PRIMARY KEY,
   seed BIGINT,
   snapshot_blob_url TEXT,
@@ -40,7 +40,7 @@ CREATE TABLE daily_sets (
 );
 
 -- 4. Daily Set Items Table
-CREATE TABLE daily_set_items (
+CREATE TABLE IF NOT EXISTS daily_set_items (
   date DATE REFERENCES daily_sets(date),
   mode_id TEXT REFERENCES modes(id),
   item_id UUID REFERENCES items(id),
@@ -49,7 +49,7 @@ CREATE TABLE daily_set_items (
 );
 
 -- 5. Plays Table
-CREATE TABLE plays (
+CREATE TABLE IF NOT EXISTS plays (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   date DATE,
   mode_id TEXT REFERENCES modes(id),
@@ -63,7 +63,7 @@ CREATE TABLE plays (
 );
 
 -- 6. Leaderboards Daily Table
-CREATE TABLE leaderboards_daily (
+CREATE TABLE IF NOT EXISTS leaderboards_daily (
   date DATE,
   mode_id TEXT REFERENCES modes(id),
   session_id TEXT,
@@ -75,6 +75,6 @@ CREATE TABLE leaderboards_daily (
 );
 
 -- Indexes for performance
-CREATE INDEX idx_items_mode_status ON items(mode_id, status);
-CREATE INDEX idx_plays_date_session ON plays(date, session_id);
-CREATE INDEX idx_leaderboards_date_score ON leaderboards_daily(date, score DESC);
+CREATE INDEX IF NOT EXISTS idx_items_mode_status ON items(mode_id, status);
+CREATE INDEX IF NOT EXISTS idx_plays_date_session ON plays(date, session_id);
+CREATE INDEX IF NOT EXISTS idx_leaderboards_date_score ON leaderboards_daily(date, score DESC);
