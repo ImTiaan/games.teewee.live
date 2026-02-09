@@ -96,8 +96,12 @@ export async function submitPlay(
 
     if (error) {
       console.error('Error submitting play:', error);
+      return { success: false, error: error.message };
     }
+
+    return { success: true };
   } catch (e) {
     console.error('Exception submitting play:', e);
+    return { success: false, error: e instanceof Error ? e.message : 'Unknown error' };
   }
 }

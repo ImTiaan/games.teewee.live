@@ -32,11 +32,14 @@ export async function GET(request: Request) {
       }
     );
     
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const { data: { session }, error } = await supabase.auth.exchangeCodeForSession(code);
     
-    if (!error) {
+    if (!error && session) {
       const forwardedHost = request.headers.get('x-forwarded-host');
       const isLocalEnv = process.env.NODE_ENV === 'development';
+      
+      // Force session refresh in middleware by visiting a protected route or just root
+      // The middleware will see the new cookies and refresh the session
       
       if (isLocalEnv) {
         return NextResponse.redirect(`${origin}${next}`);

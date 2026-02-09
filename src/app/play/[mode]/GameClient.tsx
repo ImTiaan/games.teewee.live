@@ -102,7 +102,10 @@ export default function GameClient({ modeId, modeTitle, items, choices: defaultC
         if (isCorrect) setScore(s => s + 1);
         
         // Submit Play
-        await submitPlay(modeId, currentItem.id, choice, isCorrect, 0); // TODO: Add real timing
+        const result = await submitPlay(modeId, currentItem.id, choice, isCorrect, 0); // TODO: Add real timing
+        if (!result.success) {
+            console.error('Submit play failed:', result.error);
+        }
         
         setShowFeedback(true);
         return;
@@ -116,7 +119,10 @@ export default function GameClient({ modeId, modeTitle, items, choices: defaultC
     }
 
     // Submit Play
-    await submitPlay(modeId, currentItem.id, choice, isCorrect, 0); // TODO: Add real timing
+    const result = await submitPlay(modeId, currentItem.id, choice, isCorrect, 0); // TODO: Add real timing
+    if (!result.success) {
+        console.error('Submit play failed:', result.error);
+    }
 
     setShowFeedback(true);
   };
