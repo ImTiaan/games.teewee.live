@@ -18,14 +18,23 @@ export default function AuthButton() {
 
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
+      // Try to get session first (faster, no network if local)
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user) {
+        setUser(session.user);
+      } else {
+        // Fallback to getUser (verifies with server)
+        const { data: { user } } = await supabase.auth.getUser();
+        setUser(user);
+      }
       setLoading(false);
     };
 
     getUser();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log('Auth state change:', _event, session?.user?.id);
       setUser(session?.user ?? null);
       setLoading(false);
       router.refresh();
