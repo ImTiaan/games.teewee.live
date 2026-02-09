@@ -4,61 +4,92 @@ import { createBrowserClient } from '@supabase/ssr';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-// Initialize client-side supabase
-const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-
 export default function AuthButton() {
   const router = useRouter();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  // Initialize client once per component mount
+  const [supabase] = useState(() => createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  ));
+
   useEffect(() => {
-    const getUser = async () => {
-      // Try to get session first (faster, no network if local)
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session?.user) {
-        setUser(session.user);
-      } else {
-        // Fallback to getUser (verifies with server)
-        const { data: { user } } = await supabase.auth.getUser();
-        setUser(user);
+    let mounted = true;
+
+    const checkUser = async () => {
+      try {
+        // 1. Check local session (fastest)
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (mounted) {
+          if (session?.user) {
+            console.log('Session found:', session.user.id);
+            setUser(session.user);
+            setLoading(false);
+            return;
+          }
+        }
+
+        // 2. Fallback: Check with server (more reliable if cookie exists but local storage empty)
+        const { data: { user: secureUser }, error } = await supabase.auth.getUser();
+        
+        if (mounted) {
+          if (secureUser) {
+            console.log('User found via server check:', secureUser.id);
+            setUser(secureUser);
+          } else {
+            console.log('No user found', error?.message);
+            setUser(null);
+          }
+          setLoading(false);
+        }
+      } catch (e) {
+        console.error("Auth check failed", e);
+        if (mounted) setLoading(false);
       }
-      setLoading(false);
     };
 
-    getUser();
+    checkUser();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log('Auth state change:', _event, session?.user?.id);
-      setUser(session?.user ?? null);
-      setLoading(false);
-      router.refresh();
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state change:', event);
+      if (mounted) {
+        setUser(session?.user ?? null);
+        setLoading(false);
+        router.refresh();
+      }
     });
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
-  }, [router]);
+  }, [supabase, router]);
 
   const signInWithTwitch = async () => {
-    // Determine the base URL for redirection
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
-    
-    await supabase.auth.signInWithOAuth({
-      provider: 'twitch',
-      options: {
-        redirectTo: `${baseUrl}/auth/callback`,
-      },
-    });
+    try {
+      const baseUrl = typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_SITE_URL;
+      
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'twitch',
+        options: {
+          redirectTo: `${baseUrl}/auth/callback`,
+        },
+      });
+      if (error) throw error;
+    } catch (error) {
+      console.error('Login failed:', error);
+      alert('Login failed. Please try again.');
+    }
   };
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    setUser(null);
     router.refresh();
   };
 
@@ -98,10 +129,10 @@ export default function AuthButton() {
   return (
     <button
       onClick={signInWithTwitch}
-      className="flex items-center gap-2 px-4 py-2 bg-[#6441a5] hover:bg-[#7d5bbe] text-white rounded-lg transition-colors text-sm font-medium shadow-lg hover:shadow-[#6441a5]/20"
+      className="flex items-center gap-2 px-4 py-2 bg-[#6441a5] hover:bg-[#7d5bbe] text-white rounded-full transition-colors font-medium text-sm shadow-lg shadow-purple-900/20"
     >
-      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h2.998L24 10.286V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/>
+      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h2.998L24 10.286V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V2.571h13.714z"/>
       </svg>
       Sign in with Twitch
     </button>
