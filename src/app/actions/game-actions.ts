@@ -1,6 +1,7 @@
 'use server';
 
 import { getServiceSupabase } from '../../../lib/supabase/client';
+import { createClient } from '../../../lib/supabase/server';
 
 export async function fetchArchiveItems(modeId: string, count: number) {
   const supabase = getServiceSupabase();
@@ -76,26 +77,25 @@ export async function submitPlay(
   isCorrect: boolean, 
   timeMs: number
 ) {
-  const supabase = getServiceSupabase();
-  
-  // Get current user session if exists (using auth.getUser() is safer in server actions)
-  const { data: { user } } = await supabase.auth.getUser();
+  // 1. Get User from Cookies (Secure)
+  const supabaseAuth = await createClient();
+  const { data: { user } } = await supabaseAuth.auth.getUser();
+
+  // 2. Write to DB using Service Role (Privileged)
+  const supabaseService = getServiceSupabase();
 
   try {
-    const { error } = await supabase.from('plays').insert({
+    const { error } = await supabaseService.from('plays').insert({
       mode_id: modeId,
       item_id: itemId,
-      user_id: user?.id || null, // Will be null if not logged in
+      user_id: user?.id || null, // Will be user ID if logged in, null otherwise
       answer_given: answerGiven,
       is_correct: isCorrect,
       time_ms: timeMs,
-      // session_id can be added later if we track specific game sessions
     });
 
     if (error) {
       console.error('Error submitting play:', error);
-      // We don't throw here to avoid breaking the game flow for the user
-      // but we log it for debugging
     }
   } catch (e) {
     console.error('Exception submitting play:', e);

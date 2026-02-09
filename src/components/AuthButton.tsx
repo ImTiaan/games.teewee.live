@@ -1,12 +1,12 @@
 
 'use client';
 
-import { createClient } from '@supabase/supabase-js';
+import { createBrowserClient } from '@supabase/ssr';
 import { useEffect, useState } from 'react';
 
 // Initialize client-side supabase
 // We use the env vars directly as we don't have the wrapper in components yet
-const supabase = createClient(
+const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
