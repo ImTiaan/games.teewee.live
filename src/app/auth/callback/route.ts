@@ -41,13 +41,12 @@ export async function GET(request: Request) {
       // Force session refresh in middleware by visiting a protected route or just root
       // The middleware will see the new cookies and refresh the session
       
-      if (isLocalEnv) {
-        return NextResponse.redirect(`${origin}${next}`);
-      } else if (forwardedHost) {
-        return NextResponse.redirect(`https://${forwardedHost}${next}`);
-      } else {
-        return NextResponse.redirect(`${origin}${next}`);
+      let redirectUrl = `${origin}${next}`;
+      if (!isLocalEnv && forwardedHost) {
+        redirectUrl = `https://${forwardedHost}${next}`;
       }
+
+      return NextResponse.redirect(redirectUrl);
     } else {
         console.error('Exchange Code Error:', error);
     }

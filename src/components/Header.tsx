@@ -3,6 +3,9 @@ import Link from 'next/link';
 import AuthButton from './AuthButton';
 import { createClient } from '../../lib/supabase/server';
 
+// Force dynamic rendering to ensure user state is always fresh
+export const dynamic = 'force-dynamic';
+
 export default async function Header() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
