@@ -17,37 +17,46 @@ export default function AuthButton() {
   ));
 
   useEffect(() => {
+    console.log('[AuthButton] Mounted');
     let mounted = true;
 
     const checkUser = async () => {
       try {
+        console.log('[AuthButton] Checking local session...');
         // 1. Check local session (fastest)
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
+        if (sessionError) {
+             console.error('[AuthButton] Session check error:', sessionError);
+        }
+
         if (mounted) {
           if (session?.user) {
-            console.log('Session found:', session.user.id);
+            console.log('[AuthButton] Local session found:', session.user.id);
             setUser(session.user);
             setLoading(false);
             return;
+          } else {
+             console.log('[AuthButton] No local session found.');
           }
         }
 
         // 2. Fallback: Check with server (more reliable if cookie exists but local storage empty)
+        console.log('[AuthButton] Checking server-side user...');
         const { data: { user: secureUser }, error } = await supabase.auth.getUser();
         
         if (mounted) {
           if (secureUser) {
-            console.log('User found via server check:', secureUser.id);
+            console.log('[AuthButton] User found via server check:', secureUser.id);
             setUser(secureUser);
           } else {
-            console.log('No user found', error?.message);
+            console.log('[AuthButton] No user found via server check:', error?.message);
             setUser(null);
           }
           setLoading(false);
         }
       } catch (e) {
-        console.error("Auth check failed", e);
+        console.error("[AuthButton] Auth check unexpected error:", e);
         if (mounted) setLoading(false);
       }
     };
@@ -56,7 +65,7 @@ export default function AuthButton() {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state change:', event);
+      console.log('[AuthButton] Auth state change:', event, session?.user?.id);
       if (mounted) {
         setUser(session?.user ?? null);
         setLoading(false);
@@ -65,14 +74,17 @@ export default function AuthButton() {
     });
 
     return () => {
+      console.log('[AuthButton] Unmounting');
       mounted = false;
       subscription.unsubscribe();
     };
   }, [supabase, router]);
 
   const signInWithTwitch = async () => {
+    console.log('[AuthButton] Initiating Twitch sign-in...');
     try {
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_SITE_URL;
+      console.log('[AuthButton] Redirect URL:', `${baseUrl}/auth/callback`);
       
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'twitch',
@@ -80,14 +92,18 @@ export default function AuthButton() {
           redirectTo: `${baseUrl}/auth/callback`,
         },
       });
-      if (error) throw error;
+      if (error) {
+          console.error('[AuthButton] Sign-in error:', error);
+          throw error;
+      }
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error('[AuthButton] Login failed:', error);
       alert('Login failed. Please try again.');
     }
   };
 
   const signOut = async () => {
+    console.log('[AuthButton] Signing out...');
     await supabase.auth.signOut();
     setUser(null);
     router.refresh();

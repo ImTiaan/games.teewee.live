@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 
 export async function middleware(request: NextRequest) {
+  // console.log('[Middleware] Running for:', request.nextUrl.pathname);
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -31,7 +32,8 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
+  // if (user) console.log('[Middleware] User authenticated:', user.id);
 
   return response
 }
