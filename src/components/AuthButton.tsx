@@ -2,31 +2,21 @@
 'use client';
 
 import { createBrowserClient } from '@supabase/ssr';
-import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 // Initialize client-side supabase
-// We use the env vars directly as we don't have the wrapper in components yet
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-export default function AuthButton() {
-  const [user, setUser] = useState<any>(null);
+interface AuthButtonProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  user: any; // Using any to avoid importing User type mess for now
+}
 
-  useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
-
-    // Listen for changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
+export default function AuthButton({ user }: AuthButtonProps) {
+  const router = useRouter();
 
   const signInWithTwitch = async () => {
     // Determine the base URL for redirection
@@ -42,6 +32,7 @@ export default function AuthButton() {
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    router.refresh(); // Refresh server components to update Header
   };
 
   if (user) {
