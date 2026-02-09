@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -26,9 +27,10 @@ interface GameOrchestratorProps {
   modeTitle: string;
   dailyItems: GameItem[];
   choices: string[];
+  isHeadline: boolean;
 }
 
-export default function GameOrchestrator({ modeId, modeTitle, dailyItems, choices }: GameOrchestratorProps) {
+export default function GameOrchestrator({ modeId, modeTitle, dailyItems, choices, isHeadline }: GameOrchestratorProps) {
   const [gameState, setGameState] = useState<{
     status: 'setup' | 'playing';
     items: GameItem[];
@@ -88,6 +90,7 @@ export default function GameOrchestrator({ modeId, modeTitle, dailyItems, choice
       dailyItemCount={dailyItems.length}
       onStartGame={handleStartDaily}
       onStartArchive={handleStartArchive}
+      isHeadline={isHeadline}
     />
   );
 }

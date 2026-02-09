@@ -44,7 +44,7 @@ export class DailyGenerator {
     // 2. Get active modes
     const { data: modes } = await this.supabase
       .from('modes')
-      .select('id')
+      .select('id, is_headline')
       .eq('active', true);
 
     if (!modes || modes.length === 0) {
@@ -53,6 +53,11 @@ export class DailyGenerator {
     }
 
     for (const mode of modes) {
+      // @ts-ignore - is_headline might not be in the generated types yet
+      if (mode.is_headline !== true) {
+        console.log(`Skipping mode ${mode.id} (not headline).`);
+        continue;
+      }
       // 3. Check if items already exist for this mode
       const { count } = await this.supabase
         .from('daily_set_items')

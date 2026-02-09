@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -9,10 +10,11 @@ interface GameSetupProps {
   dailyItemCount: number;
   onStartGame: (count: number) => void;
   onStartArchive: (count: number) => void;
+  isHeadline: boolean;
 }
 
-export default function GameSetup({ modeTitle, dailyItemCount, onStartGame, onStartArchive }: GameSetupProps) {
-  const [activeTab, setActiveTab] = useState<'daily' | 'archive'>('daily');
+export default function GameSetup({ modeTitle, dailyItemCount, onStartGame, onStartArchive, isHeadline }: GameSetupProps) {
+  const [activeTab, setActiveTab] = useState<'daily' | 'archive'>(isHeadline ? 'daily' : 'archive');
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-8">
@@ -25,7 +27,8 @@ export default function GameSetup({ modeTitle, dailyItemCount, onStartGame, onSt
           <p className="text-green-100/60">Choose your challenge</p>
         </div>
 
-        {/* Tabs */}
+        {/* Tabs - Only show if Headline mode, otherwise title implies Arcade */}
+        {isHeadline && (
         <div className="flex p-1 bg-black/20 backdrop-blur-xl rounded-full border border-white/10">
           <button
             onClick={() => setActiveTab('daily')}
@@ -44,8 +47,9 @@ export default function GameSetup({ modeTitle, dailyItemCount, onStartGame, onSt
             Archive / Practice
           </button>
         </div>
+        )}
 
-        {activeTab === 'daily' ? (
+        {activeTab === 'daily' && isHeadline ? (
           <div className="glass-panel p-8 rounded-3xl space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="text-center">
               <h2 className="text-xl font-semibold mb-2">Today's Set</h2>
@@ -80,9 +84,11 @@ export default function GameSetup({ modeTitle, dailyItemCount, onStartGame, onSt
         ) : (
           <div className="glass-panel p-8 rounded-3xl space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
              <div className="text-center">
-              <h2 className="text-xl font-semibold mb-2">Archive Play</h2>
+              <h2 className="text-xl font-semibold mb-2">
+                {isHeadline ? 'Archive Play' : 'Arcade Mode'}
+              </h2>
               <p className="text-sm text-green-100/50">
-                Practice with random questions from the past
+                Play random questions from the vault
               </p>
             </div>
 

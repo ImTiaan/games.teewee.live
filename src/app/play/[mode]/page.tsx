@@ -63,6 +63,7 @@ export default async function PlayPage({ params }: { params: Promise<{ mode: str
       modeTitle={mode.title}
       dailyItems={items}
       choices={choices}
+      isHeadline={mode.is_headline ?? false}
     />
   );
 }
