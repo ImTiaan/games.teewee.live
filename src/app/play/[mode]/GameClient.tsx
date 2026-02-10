@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, ArrowRight, Check, X, ExternalLink, Play, Pause, Volume2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, X, ExternalLink, Play, Volume2 } from 'lucide-react';
 import clsx from 'clsx';
 import { submitPlay } from '../../actions/game-actions';
 
@@ -49,8 +49,7 @@ export default function GameClient({ modeId, modeTitle, items, choices: defaultC
   // Prioritize item-specific choices (from choices column or metadata), fallback to mode default
   const currentChoices = currentItem?.choices || currentItem?.metadata?.choices || defaultChoices;
 
-  // Reset music state on item change
-  useEffect(() => {
+  const resetAudioState = () => {
     setAudioDuration(1);
     setDropdownValue("");
     setIsPlaying(false);
@@ -58,7 +57,7 @@ export default function GameClient({ modeId, modeTitle, items, choices: defaultC
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
     }
-  }, [currentIndex]);
+  };
 
   const handlePlayAudio = () => {
     if (!audioRef.current) return;
@@ -130,6 +129,7 @@ export default function GameClient({ modeId, modeTitle, items, choices: defaultC
   const handleNext = () => {
     setShowFeedback(false);
     setSelectedAnswer(null);
+    resetAudioState();
     
     if (currentIndex < items.length - 1) {
       setCurrentIndex(i => i + 1);
@@ -157,7 +157,7 @@ export default function GameClient({ modeId, modeTitle, items, choices: defaultC
 
           {isMarathon && (
             <p className="text-green-300 font-medium animate-pulse">
-              Incredible! You've answered every available question.
+              Incredible! You&apos;ve answered every available question.
             </p>
           )}
 
@@ -242,7 +242,7 @@ export default function GameClient({ modeId, modeTitle, items, choices: defaultC
               <h2 className="text-2xl md:text-3xl font-medium leading-tight animate-in fade-in zoom-in duration-300">
                 {modeId === 'music-history' 
                     ? currentItem.prompt_text.replace(/\(Starts with 1s\)/i, '').replace(/"/g, '')
-                    : `"${currentItem.prompt_text}"`
+                    : <>&ldquo;{currentItem.prompt_text}&rdquo;</>
                 }
               </h2>
               {currentItem.metadata?.pubDate && (
@@ -280,7 +280,7 @@ export default function GameClient({ modeId, modeTitle, items, choices: defaultC
                 <div className="mt-4 p-4 rounded-xl bg-white/5 border border-white/10 max-w-sm w-full">
                   <p className="text-xs text-green-100/40 uppercase tracking-widest mb-2">Usage</p>
                   <p className="text-sm text-green-100/80 italic leading-relaxed">
-                    "{currentItem.metadata.example}"
+                    &ldquo;{currentItem.metadata.example}&rdquo;
                   </p>
                 </div>
               )}

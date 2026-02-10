@@ -1,4 +1,5 @@
 
+import Image from 'next/image';
 import { fetchLeaderboard } from '../actions/leaderboard-actions';
 
 export const revalidate = 60; // Cache for 60 seconds
@@ -32,7 +33,7 @@ export default async function LeaderboardPage() {
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
                     {entry.avatar_url && (
-                      <img src={entry.avatar_url} alt="" className="w-8 h-8 rounded-full" />
+                      <Image src={entry.avatar_url} alt="" width={32} height={32} className="w-8 h-8 rounded-full" />
                     )}
                     <span className="font-medium text-green-100">{entry.username || 'Anonymous'}</span>
                   </div>

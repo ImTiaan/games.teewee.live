@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowLeft, Play, Archive, Infinity } from 'lucide-react';
+import { ArrowLeft, Infinity } from 'lucide-react';
 import Link from 'next/link';
 
 interface GameSetupProps {
@@ -52,7 +52,7 @@ export default function GameSetup({ modeTitle, dailyItemCount, onStartGame, onSt
         {activeTab === 'daily' && isHeadline ? (
           <div className="glass-panel p-8 rounded-3xl space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="text-center">
-              <h2 className="text-xl font-semibold mb-2">Today's Set</h2>
+              <h2 className="text-xl font-semibold mb-2">Today&apos;s Set</h2>
               <p className="text-sm text-green-100/50">
                 Generated deterministically for {new Date().toLocaleDateString()}
               </p>

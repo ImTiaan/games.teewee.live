@@ -3,7 +3,6 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { getServiceSupabase } from '../../lib/supabase/client';
 import { StaticTextSource } from '../../lib/ingestion/sources/static-text';
-import { humanParagraphs, aiParagraphs } from './data/human-machine';
 
 // Load environment variables
 dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
@@ -30,14 +29,6 @@ async function run() {
       round_type: 'binary',
       active: true,
       rules_json: { choices: ['Real', 'Fake'] }
-    },
-    {
-      id: 'human-machine',
-      title: 'Human or AI Writer',
-      description: 'Can you spot the soul in the machine?',
-      round_type: 'binary',
-      active: true,
-      rules_json: { choices: ['Human', 'AI'] }
     },
     {
       id: 'urban-dictionary',
@@ -293,16 +284,11 @@ async function run() {
     "Pegasus's Groom", "Phoenix's Ash Sweeper", "Griffin's Nest Builder", "Basilisk's Optometrist", "Kraken's Tentacle Untangler"
   ].map(t => ({ text: t }));
 
-  const humanTexts = humanParagraphs.map(t => ({ text: t }));
-  const aiTexts = aiParagraphs.map(t => ({ text: t }));
-
   const sources = [
     new StaticTextSource('real-animals', 'Biology Database', 'animal-fictional', 'Real', realAnimals),
     new StaticTextSource('fictional-animals', 'Mythology Database', 'animal-fictional', 'Fictional', fictionalAnimals),
     new StaticTextSource('real-jobs', 'HR Database', 'job-fake', 'Real', realJobs),
-    new StaticTextSource('fake-jobs', 'Satire Job Board', 'job-fake', 'Fake', fakeJobs),
-    new StaticTextSource('human-texts', 'Literature Database', 'human-machine', 'Human', humanTexts),
-    new StaticTextSource('ai-texts', 'GPT-3 Output', 'human-machine', 'AI', aiTexts)
+    new StaticTextSource('fake-jobs', 'Satire Job Board', 'job-fake', 'Fake', fakeJobs)
   ];
 
   // 3. Ingest

@@ -9,22 +9,6 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 const newModes = [
   {
-    id: 'guess-the-city',
-    title: 'Guess the City',
-    description: 'Can you identify the city from a single photo?',
-    round_type: 'multi',
-    rules_json: { type: 'multi-choice' }, 
-    active: true
-  },
-  {
-    id: 'guess-the-landmark',
-    title: 'Guess the Landmark',
-    description: 'Identify these world-famous sites.',
-    round_type: 'multi',
-    rules_json: { type: 'multi-choice' },
-    active: true
-  },
-  {
     id: 'guess-the-era',
     title: 'Guess the Era',
     description: 'When was this painted?',

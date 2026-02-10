@@ -1,18 +1,11 @@
 import { IngestionSource, IngestedItem } from '../types';
 import crypto from 'crypto';
 
-interface UnsplashConfig {
-  accessKey?: string; // Optional if we use public RSS or scraping, but API is better if available.
-  // For this demo/MVP without keys, we might use a predefined list or public search URL scraping if possible.
-  // actually, let's just use a static list of high-quality Unsplash images for 'Real' 
-  // and some AI placeholders for 'AI' to get the user started.
-}
-
 export class StaticImageSource implements IngestionSource {
   id: string;
   name: string;
   mode_id: string;
-  frequency: 'manual' = 'manual';
+  frequency = 'manual' as const;
   category: 'Real' | 'AI';
   
   private staticImages: Array<{ url: string; title: string; photographer: string }>;
@@ -49,6 +42,6 @@ export class StaticImageSource implements IngestionSource {
   }
 
   async validate(item: IngestedItem): Promise<boolean> {
-    return true;
+    return Boolean(item);
   }
 }

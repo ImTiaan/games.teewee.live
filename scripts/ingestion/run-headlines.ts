@@ -34,7 +34,6 @@ async function runIngestion() {
     console.log(`Found ${items.length} items.`);
 
     let ingestedCount = 0;
-    let skippedCount = 0;
 
     for (const item of items) {
       if (await source.validate(item)) {

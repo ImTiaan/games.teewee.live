@@ -5,7 +5,7 @@ interface WikidataBinding {
   item: { value: string };
   itemLabel: { value: string };
   image?: { value: string };
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface WikidataResponse {
@@ -46,7 +46,6 @@ export class WikidataSource implements IngestionSource {
 
       const data = await response.json() as WikidataResponse;
       const bindings = data.results.bindings;
-      const items: IngestedItem[] = [];
 
       // We need at least 4 items to create a question with 3 distractors
       if (bindings.length < 4) {
@@ -124,6 +123,7 @@ export class WikidataSource implements IngestionSource {
   }
 
   async validate(item: IngestedItem): Promise<boolean> {
-    return !!(item.prompt_text && item.metadata?.imageUrl && item.metadata?.choices?.length === 4);
+    const metadata = item.metadata as { imageUrl?: unknown; choices?: unknown } | undefined;
+    return !!(item.prompt_text && metadata?.imageUrl && Array.isArray(metadata?.choices) && metadata.choices.length === 4);
   }
 }

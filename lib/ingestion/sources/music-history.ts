@@ -160,12 +160,12 @@ export class MusicHistorySource implements IngestionSource {
                 // Retry once
                 const res2 = await fetch(url);
                 if (!res2.ok) throw new Error(`iTunes API error: ${res2.statusText}`);
-                const data2: any = await res2.json();
+                const data2 = await res2.json() as { results?: ItunesResult[] };
                 return data2.results || [];
             }
             throw new Error(`iTunes API error: ${res.statusText}`);
         }
-        const data: any = await res.json();
+        const data = await res.json() as { results?: ItunesResult[] };
         return data.results || [];
     } catch (e) {
         console.error("Fetch error:", e);

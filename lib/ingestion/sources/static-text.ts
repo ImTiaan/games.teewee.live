@@ -6,17 +6,17 @@ export class StaticTextSource implements IngestionSource {
   id: string;
   name: string;
   mode_id: string;
-  frequency: 'manual' = 'manual';
+  frequency = 'manual' as const;
   category: string;
   
-  private staticItems: Array<{ text: string; answer: string; metadata?: Record<string, any> }>;
+  private staticItems: Array<{ text: string; answer: string; metadata?: Record<string, unknown> }>;
 
   constructor(
     id: string, 
     name: string, 
     mode_id: string, 
     category: string, // e.g., "Real" or "Fictional"
-    items: Array<{ text: string; answer?: string; metadata?: Record<string, any> }>
+    items: Array<{ text: string; answer?: string; metadata?: Record<string, unknown> }>
   ) {
     this.id = id;
     this.name = name;
@@ -50,6 +50,6 @@ export class StaticTextSource implements IngestionSource {
   }
 
   async validate(item: IngestedItem): Promise<boolean> {
-    return true;
+    return Boolean(item);
   }
 }

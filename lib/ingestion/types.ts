@@ -2,7 +2,7 @@ export interface IngestedItem {
   mode_id: string;
   prompt_text: string;
   answer: string;
-  choices_json?: Record<string, any> | string[]; // Can be flexible depending on mode
+  choices_json?: Record<string, unknown> | string[]; // Can be flexible depending on mode
   asset_type: 'text' | 'image' | 'audio' | 'video';
   blob_url?: string; // If fetched/uploaded
   source_name: string;
@@ -10,7 +10,7 @@ export interface IngestedItem {
   license: string;
   external_id: string; // Unique ID from source to prevent re-fetching
   hash: string; // Content hash for idempotency
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface IngestionSource {

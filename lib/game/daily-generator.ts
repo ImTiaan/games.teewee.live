@@ -12,7 +12,7 @@ export class DailyGenerator {
     console.log(`Starting generation for ${dateStr}...`);
     
     // 1. Ensure Daily Set record exists
-    let { data: existing } = await this.supabase
+    const { data: existing } = await this.supabase
       .from('daily_sets')
       .select('date')
       .eq('date', dateStr)
@@ -53,7 +53,6 @@ export class DailyGenerator {
     }
 
     for (const mode of modes) {
-      // @ts-ignore - is_headline might not be in the generated types yet
       if (mode.is_headline !== true) {
         console.log(`Skipping mode ${mode.id} (not headline).`);
         continue;

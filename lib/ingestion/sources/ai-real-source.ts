@@ -6,7 +6,7 @@ interface WikidataBinding {
   item: { value: string };
   itemLabel: { value: string };
   image?: { value: string };
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface WikidataResponse {
@@ -162,6 +162,7 @@ export class AiRealSource implements IngestionSource {
   }
 
   async validate(item: IngestedItem): Promise<boolean> {
-    return !!(item.prompt_text && item.metadata?.imageUrl && item.metadata?.choices?.length > 0);
+    const metadata = item.metadata as { imageUrl?: unknown; choices?: unknown } | undefined;
+    return !!(item.prompt_text && metadata?.imageUrl && Array.isArray(metadata?.choices) && metadata.choices.length > 0);
   }
 }
