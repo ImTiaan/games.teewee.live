@@ -2,9 +2,9 @@
 
 import { createBrowserClient } from '@supabase/ssr';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 
-export default function AuthCallbackPage() {
+function AuthCallbackClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [message, setMessage] = useState('Signing you in...');
@@ -50,5 +50,13 @@ export default function AuthCallbackPage() {
     <div className="min-h-screen flex items-center justify-center text-green-100">
       {message}
     </div>
+  );
+}
+
+export default function AuthCallbackPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-green-100">Signing you in...</div>}>
+      <AuthCallbackClient />
+    </Suspense>
   );
 }
