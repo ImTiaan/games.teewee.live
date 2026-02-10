@@ -53,9 +53,16 @@ export async function GET(request: Request) {
       }
       
       console.log('[AuthCallback] Redirecting to:', redirectUrl);
-      return NextResponse.redirect(redirectUrl);
+      
+      // Append debug info to redirect URL
+      const redirectUrlObj = new URL(redirectUrl);
+      redirectUrlObj.searchParams.set('auth_status', 'success');
+      redirectUrlObj.searchParams.set('auth_uid', session?.user?.id ?? 'unknown');
+      
+      return NextResponse.redirect(redirectUrlObj.toString());
     } else {
         console.error('[AuthCallback] Exchange Code Error:', error);
+        return NextResponse.redirect(`${origin}/auth/auth-code-error?error=${encodeURIComponent(error.message)}`);
     }
   } else {
       console.error('[AuthCallback] No code provided in URL');
