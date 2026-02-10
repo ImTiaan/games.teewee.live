@@ -19,18 +19,33 @@ function AuthCallbackClient() {
     const code = searchParams.get('code');
     const next = searchParams.get('next') ?? '/';
 
-    if (!code) {
-      setMessage('Missing authorisation code.');
-      return;
-    }
-
     let active = true;
 
     const exchange = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!active) return;
+      if (session?.user) {
+        router.replace(next);
+        router.refresh();
+        return;
+      }
+
+      if (!code) {
+        setMessage('Missing authorisation code.');
+        return;
+      }
+
       const { error } = await supabase.auth.exchangeCodeForSession(code);
       if (!active) return;
 
       if (error) {
+        const { data: { session: retrySession } } = await supabase.auth.getSession();
+        if (!active) return;
+        if (retrySession?.user) {
+          router.replace(next);
+          router.refresh();
+          return;
+        }
         setMessage(`Sign-in failed: ${error.message}`);
         return;
       }
