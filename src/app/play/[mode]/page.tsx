@@ -6,6 +6,16 @@ export const revalidate = 0;
 
 export default async function PlayPage({ params }: { params: Promise<{ mode: string }> }) {
   const { mode: modeId } = await params;
+  const hiddenModeIds = new Set([
+    'guess-the-city',
+    'guess-city',
+    'guess-the-landmark',
+    'ai-real',
+    'human-machine'
+  ]);
+  if (hiddenModeIds.has(modeId)) {
+    notFound();
+  }
   const supabase = getServiceSupabase();
 
   // 1. Fetch Mode

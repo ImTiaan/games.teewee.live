@@ -6,14 +6,22 @@ export const revalidate = 0; // Disable static caching for now
 
 export default async function Home() {
   const supabase = getServiceSupabase();
+  const hiddenModeIds = new Set([
+    'guess-the-city',
+    'guess-city',
+    'guess-the-landmark',
+    'ai-real',
+    'human-machine'
+  ]);
   const { data: modes } = await supabase
     .from('modes')
     .select('*')
     .eq('active', true)
     .order('title');
 
-  const dailyModes = modes?.filter(m => m.id === 'headline-satire') || [];
-  const arcadeModes = modes?.filter(m => m.id !== 'headline-satire') || [];
+  const visibleModes = modes?.filter(m => !hiddenModeIds.has(m.id)) || [];
+  const dailyModes = visibleModes.filter(m => m.id === 'headline-satire');
+  const arcadeModes = visibleModes.filter(m => m.id !== 'headline-satire');
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center p-6 md:p-12 relative overflow-hidden">
