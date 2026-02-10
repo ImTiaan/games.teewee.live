@@ -2,7 +2,7 @@
 
 import { createBrowserClient } from '@supabase/ssr';
 import { User } from '@supabase/supabase-js';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 interface AuthButtonProps {
@@ -11,7 +11,6 @@ interface AuthButtonProps {
 
 export default function AuthButton({ user: initialUser }: AuthButtonProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [user, setUser] = useState<User | null>(initialUser);
   const [loading, setLoading] = useState(false);
 
@@ -22,34 +21,21 @@ export default function AuthButton({ user: initialUser }: AuthButtonProps) {
   ));
 
   useEffect(() => {
-    const authStatus = searchParams.get('auth_status');
-    const authUid = searchParams.get('auth_uid');
-    
     console.log('[AuthButton] Mounted with initial user:', initialUser?.id);
-    console.log('[AuthButton] URL Params - Status:', authStatus, 'UID:', authUid);
-
     let mounted = true;
 
-    // If we have success param but no user, try to recover session
-    if (authStatus === 'success' && !initialUser) {
-        console.log('[AuthButton] Detected successful auth redirect but missing server-side user. Retrying client-side...');
-        setLoading(true);
-        supabase.auth.getUser().then(({ data: { user: recoveredUser }, error }) => {
-            if (mounted) {
-                if (recoveredUser) {
-                    console.log('[AuthButton] Recovered user client-side:', recoveredUser.id);
-                    setUser(recoveredUser);
-                } else {
-                    console.error('[AuthButton] Failed to recover user client-side:', error);
-                }
-                setLoading(false);
-                // Clean URL
-                const newUrl = new URL(window.location.href);
-                newUrl.searchParams.delete('auth_status');
-                newUrl.searchParams.delete('auth_uid');
-                window.history.replaceState({}, '', newUrl.toString());
-            }
-        });
+    if (!initialUser) {
+      setLoading(true);
+      supabase.auth.getSession().then(({ data: { session }, error }) => {
+        if (!mounted) return;
+        if (session?.user) {
+          console.log('[AuthButton] Session recovered client-side:', session.user.id);
+          setUser(session.user);
+        } else if (error) {
+          console.error('[AuthButton] Session recovery failed:', error);
+        }
+        setLoading(false);
+      });
     }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -67,7 +53,7 @@ export default function AuthButton({ user: initialUser }: AuthButtonProps) {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [supabase, router, initialUser, searchParams]);
+  }, [supabase, router, initialUser]);
 
   const signInWithTwitch = async () => {
     console.log('[AuthButton] Initiating Twitch sign-in...');
